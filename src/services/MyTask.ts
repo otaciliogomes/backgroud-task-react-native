@@ -1,0 +1,44 @@
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+
+const MY_TASK = "MY_TASK";
+
+TaskManager.defineTask(MY_TASK, async () => {
+  const now = Date.now();
+
+  console.log(
+    `Got background fetch call at date: ${new Date(now).toISOString()}`
+  );
+
+  console.log("Downloading file....");
+
+  fetch('https://jsonplaceholder.typicode.com/todos/1')
+  .then(response => response.json())
+  .then(json => console.log(json))
+
+  // This return value is to let iOS know what the result of your background fetch was,
+  // so the platform can better schedule future background fetches.
+  return BackgroundFetch.BackgroundFetchResult.NewData;
+});
+
+export const register = async () => {
+  console.log("register: ", MY_TASK);
+
+  return await BackgroundFetch.registerTaskAsync(MY_TASK, {
+    minimumInterval: 1, // 5 seconds
+    stopOnTerminate: false, // android only,
+    startOnBoot: true, // android only
+  });
+};
+
+export const unregister = () => {
+  console.log("unregister: ", MY_TASK);
+
+  return BackgroundFetch.unregisterTaskAsync(MY_TASK);
+};
+
+export const checkStatus = async () => {
+  const status = await BackgroundFetch.getStatusAsync();
+  const isRegistered = await TaskManager.isTaskRegisteredAsync(MY_TASK);
+  return { status, isRegistered };
+};
